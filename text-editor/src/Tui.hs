@@ -8,6 +8,7 @@ import Brick.Types
 import Brick.Util
 import Brick.Widgets.Border
 import Brick.Widgets.Core
+import Brick.Widgets.Skylighting
 import Control.Monad
 import Cursor.Brick.TextField
 import Cursor.TextField
@@ -45,14 +46,11 @@ data ResourceName
   deriving (Show, Eq, Ord)
 
 tuiApp :: App TuiState e ResourceName
-tuiApp =
-  App
-    { appDraw = drawTui,
+tuiApp =  App { appDraw = drawTui,
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent,
       appStartEvent = pure,
-      appAttrMap = const $ attrMap mempty []
-    }
+      appAttrMap = const $ attrMap mempty [] }
 
 buildInitialState :: Text -> IO TuiState
 buildInitialState contents = do
@@ -61,8 +59,8 @@ buildInitialState contents = do
 
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts =
-  [ selectedTextFieldCursorWidget ResourceName (stateCursor ts) --TODO border greedy
-  ]
+    let codeText = rebuildTextFieldCursor (stateCursor ts)
+    in [highlight (syntax "haskell") codeText]
 
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
 handleTuiEvent s e =
@@ -74,7 +72,7 @@ handleTuiEvent s e =
           mDo func = do
             let tfc = stateCursor s
             let tfc' = fromMaybe tfc $ func tfc
-            let s' = s {stateCursor = tfc'}
+            let s' = s { stateCursor = tfc' }
             continue s'
        in case vtye of
             EvKey (KChar c) [] -> mDo $ textFieldCursorInsertChar c . Just

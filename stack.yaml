@@ -2,19 +2,11 @@ resolver: lts-14.20
 packages:
 - text-editor
 extra-deps:
-  - github: NorfairKing/cursor
-    commit: 452e43cb466f8ac010da8318f84836e8ceca1efe
-    subdirs:
-      - cursor
-      - cursor-gen
-  - github: NorfairKing/validity
-    commit: 1ba19a12be1f7da1d3e0054e8dbbc82ec60d2160
-    subdirs:
-      - validity
-  - github: NorfairKing/cursor-brick
-    commit: 94907e9ad1a2100fa0309733a58317c982e0f146
-    subdirs:
-      - cursor-brick
+  - brick-skylighting-1.0@sha256:64764b6be36c05261959f68ed38b9cb37e1acb6180a3bde5dd98255f62ea7e3b
+  - cursor-0.3.2.0@sha256:f740872c165f2ab9dd386faa52eb167843379a484ac0482b630a2043ca9e9234
+  - cursor-brick-0.1.0.1@sha256:38fdc31258e960a586cd64c9459a17f9e4fc6257b3da412348f0379f3877c7d5
+  - bimap-0.5.0@sha256:aba506d02a1c93fc2b50dcbe728d2a4d07cca89b7033945418061a0b08576ebd
+  - text-zipper-0.13@sha256:e1a48d69c9324ed3784bc39d5ded84d63ea3115b32a018ddf76158ed9d58dc0a
 nix:
   path: [ "nixpkgs=https://github.com/NixOS/nixpkgs/archive/323fe92057bb38475a446ff5e18d3b388c2e4403.tar.gz" ]
   add-gc-roots: true
