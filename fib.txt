@@ -1,0 +1,15 @@
+[
+    inc = λ(n):
+        add n 1,
+    eq = λ(i, j):
+        cond (minus i j) 0 1,
+    helper = λ(x, y, i, n): 
+        cond (eq n i)
+            (add x y) 
+            (helper y (add x y) (inc i) n),
+    fib = λ(n):
+        cond n
+            (cond (eq n 1) 1 (helper 0 1 2 n))
+            0
+]
+fib 15;

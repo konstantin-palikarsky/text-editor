@@ -37,10 +37,11 @@ data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
 styles :: [(Text, Skylighting.Types.Style)]
 styles =
-  [ ("espresso", S.espresso),
+  [
+    ("pygments", S.pygments),
+    ("espresso", S.espresso),
     ("kate", S.kate),
     ("breezeDark", S.breezeDark),
-    ("pygments", S.pygments),
     ("tango", S.tango),
     ("haddock", S.monochrome),
     ("zenburn", S.zenburn)
@@ -55,30 +56,34 @@ drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts =
   let codeText = rebuildTextFieldCursor (stateCursor ts)
       currentStyle = snd (styles !! styleIndex ts)
-   in [borderWithLabel (txt "Haskell Code") $ highlight (syntax ts) codeText]
+   in [highlight (syntax ts) codeText]
 
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
 handleTuiEvent s e =
   case e of
     VtyEvent vtye ->
-      case vtye of
-        EvKey (KChar 'q') [] -> halt s
-        EvKey KEsc [] -> halt s
-        EvKey KUp [] -> continue s {styleIndex = (styleIndex s + 1) `mod` length styles}
-        EvKey KDown [] -> continue s {styleIndex = (styleIndex s - 1) `mod` length styles}
-        EvKey (KChar c) [] -> mDo $ textFieldCursorInsertChar c . Just
-        EvKey KBS [] -> mDo $ dullMDelete . textFieldCursorRemove
-        EvKey KDel [] -> mDo $ dullMDelete . textFieldCursorDelete
-        EvKey KEnter [] -> mDo $ Just . textFieldCursorInsertNewline . Just
-        _ -> continue s
+      let mDo ::
+            (TextFieldCursor -> Maybe TextFieldCursor) ->
+            EventM n (Next TuiState)
+          mDo func = do
+            let tfc = stateCursor s
+            let tfc' = fromMaybe tfc $ func tfc
+            let s' = s {stateCursor = tfc'}
+            continue s'
+       in case vtye of
+            EvKey (KChar c) [] -> mDo $ textFieldCursorInsertChar c . Just
+            EvKey KUp [] -> mDo textFieldCursorSelectPrevLine
+            EvKey KDown [] -> mDo textFieldCursorSelectNextLine
+            EvKey KRight [] -> mDo textFieldCursorSelectNextChar
+            EvKey KLeft [] -> mDo textFieldCursorSelectPrevChar
+            -- import Cursor.Types
+            EvKey KBS [] -> mDo $ dullMDelete . textFieldCursorRemove
+            EvKey KDel [] -> mDo $ dullMDelete . textFieldCursorDelete
+            EvKey KEnter [] -> mDo $ Just . textFieldCursorInsertNewline . Just
+            EvKey KEsc [] -> halt s
+            _ -> continue s
     _ -> continue s
-  where
-    mDo :: (TextFieldCursor -> Maybe TextFieldCursor) -> EventM n (Next TuiState)
-    mDo func = do
-      let tfc = stateCursor s
-      let tfc' = fromMaybe tfc $ func tfc
-      let s' = s {stateCursor = tfc'}
-      continue s'
+
 
 tuiApp :: App TuiState e ResourceName
 tuiApp =
@@ -100,11 +105,11 @@ tui = do
       maybeContents <- forgivingAbsence $ T.readFile (fromAbsFile path)
       let contents = fromMaybe "" maybeContents
 
-      let syntaxDir = "definitions"
+      let syntaxDir = "/d/Uni/Masters/10_Semester/PLs/text-editor/definitions"
       result <- S.loadSyntaxesFromDir syntaxDir
       case result of
         Left e -> putStrLn ("Failed to load syntax map: " ++ e) >> exitFailure
         Right syntaxMap -> do
-          let haskellSyntax = fromMaybe (error "Haskell syntax not found") $ S.syntaxByName syntaxMap "haskell"
+          let haskellSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Common Lisp"
           initialState <- buildInitialState contents haskellSyntax
           void $ defaultMain tuiApp initialState
