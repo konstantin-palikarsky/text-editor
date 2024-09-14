@@ -11,6 +11,7 @@ library:
   dependencies:
   - brick
   - brick-skylighting
+  - skylighting-core
   - cursor
   - cursor-brick
   - directory

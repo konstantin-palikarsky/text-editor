@@ -6,6 +6,7 @@ extra-deps:
   - cursor-0.3.2.0@sha256:f740872c165f2ab9dd386faa52eb167843379a484ac0482b630a2043ca9e9234
   - cursor-brick-0.1.0.1@sha256:38fdc31258e960a586cd64c9459a17f9e4fc6257b3da412348f0379f3877c7d5
   - bimap-0.5.0@sha256:aba506d02a1c93fc2b50dcbe728d2a4d07cca89b7033945418061a0b08576ebd
+  - skylighting-core-0.8.2.1
   - text-zipper-0.13@sha256:e1a48d69c9324ed3784bc39d5ded84d63ea3115b32a018ddf76158ed9d58dc0a
 nix:
   path: [ "nixpkgs=https://github.com/NixOS/nixpkgs/archive/323fe92057bb38475a446ff5e18d3b388c2e4403.tar.gz" ]
