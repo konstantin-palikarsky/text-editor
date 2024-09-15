@@ -26,7 +26,7 @@ import System.Directory
 import System.Environment (getArgs)
 import System.Exit (die, exitFailure)
 
-data TuiState = TuiState { stateCursor :: TextFieldCursor, syntax :: Syntax } deriving (Show, Eq)
+data TuiState = TuiState { stateCursor :: TextFieldCursor, syntax :: Syntax, forceQuit :: Bool } deriving (Show, Eq)
 
 data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
@@ -69,6 +69,7 @@ handleTuiEvent s e =
             EvKey KDel [] -> actionToState $ dullMDelete . textFieldCursorDelete
             EvKey KEnter [] -> actionToState $ Just . textFieldCursorInsertNewline . Just
             EvKey KEsc [] -> halt s
+            EvKey KDel [MShift] -> halt s {forceQuit = True }
             _ -> continue s
     _ -> continue s
 
@@ -90,8 +91,8 @@ tui = do
           initialState <- buildInitialState contents blubSyntax
           endState <- defaultMain tuiApp initialState
           let contents' = rebuildTextFieldCursor (stateCursor endState)
-          unless (contents == contents') $ T.writeFile (fromAbsFile path) contents'
+          unless (contents == contents' || (forceQuit endState)) $ T.writeFile (fromAbsFile path) contents'
 
 buildInitialState :: Text -> Syntax -> IO TuiState
 buildInitialState contents languageSyntax =
-  return TuiState {stateCursor = makeTextFieldCursor contents, syntax = languageSyntax}
+  return TuiState {stateCursor = makeTextFieldCursor contents, syntax = languageSyntax, forceQuit = False}
