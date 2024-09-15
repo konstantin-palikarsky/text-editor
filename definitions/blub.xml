@@ -32,6 +32,7 @@
                 <DetectChar attribute="Symbol" context="#stay" char=":"/>
                 <DetectChar attribute="Symbol" context="#stay" char=";"/>
                 <DetectChar attribute="Symbol" context="#stay" char="="/>
+                <DetectChar attribute="Keyword" context="#stay" char="λ"/>
                 <DetectChar attribute="Brackets" context="#stay" String="()[]"/>
                 <keyword attribute="Keyword" context="#stay" String="keywords"/>
                 <Float attribute="Float" context="#stay"/>
