@@ -82,7 +82,7 @@ tui = do
       path <- resolveFile' fp
       maybeContents <- forgivingAbsence $ T.readFile (fromAbsFile path)
       let contents = fromMaybe "" maybeContents
-      let syntaxDir = "/d/Uni/Masters/10_Semester/PLs/text-editor/definitions" -- Absolute path due to stack behaving weirdly with WSL
+      let syntaxDir = "definitions"
       result <- S.loadSyntaxesFromDir syntaxDir
       case result of
         Left e -> putStrLn ("Failed to load syntax map: " ++ e) >> exitFailure
