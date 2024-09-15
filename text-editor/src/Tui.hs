@@ -41,8 +41,7 @@ buildInitialState contents blubSyntax = do
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts =
   let codeText = rebuildTextFieldCursor (stateCursor ts)
-      currentStyle = snd (head styles)
-   in [highlight (syntax ts) codeText]
+  in [highlight (syntax ts) codeText, selectedTextFieldCursorWidget ResourceName (stateCursor ts)]
 
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
 handleTuiEvent s e =
