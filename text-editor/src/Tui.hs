@@ -9,19 +9,19 @@ import Brick.Util
 import Brick.Widgets.Border
 import Brick.Widgets.Core
 import Brick.Widgets.Skylighting (highlight, attrMappingsForStyle)
-import Control.Monad (unless, void)
+import Graphics.Vty.Input.Events
+import qualified Graphics.Vty as V
+import Skylighting.Types (Syntax, Style)
+import qualified Skylighting.Core as S
 import Cursor.Brick.TextField
 import Cursor.TextField
 import Cursor.Types
+import Control.Monad (unless, void)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text.IO as T
-import Graphics.Vty.Input.Events
-import qualified Graphics.Vty as V
 import Path
 import Path.IO
-import qualified Skylighting.Core as S
-import Skylighting.Types (Syntax, Style)
 import System.Directory
 import System.Environment (getArgs)
 import System.Exit (die, exitFailure)
@@ -31,8 +31,7 @@ data TuiState = TuiState { stateCursor :: TextFieldCursor, syntax :: Syntax } de
 data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
 tuiApp :: App TuiState e ResourceName
-tuiApp =
-  App
+tuiApp = App
     { appDraw = drawTui,
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent,
@@ -40,39 +39,34 @@ tuiApp =
       appAttrMap = \_ -> attrMap V.defAttr $ attrMappingsForStyle S.pygments
     }
 
-
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts = [
   highlight (syntax ts) (rebuildTextFieldCursor (stateCursor ts)),
   selectedTextFieldCursorWidget ResourceName (stateCursor ts)
   ]
 
-
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
 handleTuiEvent s e =
   case e of
     VtyEvent vtye ->
-      let mDo ::
-            (TextFieldCursor -> Maybe TextFieldCursor) ->
-            EventM n (Next TuiState)
-          mDo func = do
-            let tfc = stateCursor s
-            let tfc' = fromMaybe tfc $ func tfc
-            let s' = s {stateCursor = tfc'}
+      let actionToState :: (TextFieldCursor -> Maybe TextFieldCursor) -> EventM n (Next TuiState)
+          actionToState func = do
+            let textFieldCursor = stateCursor s
+            let textFieldCursor' = fromMaybe textFieldCursor $ func textFieldCursor
+            let s' = s {stateCursor = textFieldCursor'}
             continue s'
        in case vtye of
-            EvKey (KChar c) [] -> mDo $ textFieldCursorInsertChar c . Just
-            EvKey KUp [] -> mDo textFieldCursorSelectPrevLine
-            EvKey KDown [] -> mDo textFieldCursorSelectNextLine
-            EvKey KRight [] -> mDo textFieldCursorSelectNextChar
-            EvKey KLeft [] -> mDo textFieldCursorSelectPrevChar
-            EvKey KBS [] -> mDo $ dullMDelete . textFieldCursorRemove
-            EvKey KDel [] -> mDo $ dullMDelete . textFieldCursorDelete
-            EvKey KEnter [] -> mDo $ Just . textFieldCursorInsertNewline . Just
+            EvKey (KChar c) [] -> actionToState $ textFieldCursorInsertChar c . Just
+            EvKey KUp [] -> actionToState textFieldCursorSelectPrevLine
+            EvKey KDown [] -> actionToState textFieldCursorSelectNextLine
+            EvKey KRight [] -> actionToState textFieldCursorSelectNextChar
+            EvKey KLeft [] -> actionToState textFieldCursorSelectPrevChar
+            EvKey KBS [] -> actionToState $ dullMDelete . textFieldCursorRemove
+            EvKey KDel [] -> actionToState $ dullMDelete . textFieldCursorDelete
+            EvKey KEnter [] -> actionToState $ Just . textFieldCursorInsertNewline . Just
             EvKey KEsc [] -> halt s
             _ -> continue s
     _ -> continue s
-
 
 tui :: IO ()
 tui = do
@@ -92,7 +86,6 @@ tui = do
           initialState <- buildInitialState contents blubSyntax
           void $ defaultMain tuiApp initialState
 
-
 buildInitialState :: Text -> Syntax -> IO TuiState
-buildInitialState contents blubSyntax =
-  return TuiState {stateCursor = makeTextFieldCursor contents, syntax = blubSyntax}
+buildInitialState contents languageSyntax =
+  return TuiState {stateCursor = makeTextFieldCursor contents, syntax = languageSyntax}
