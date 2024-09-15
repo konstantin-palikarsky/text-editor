@@ -110,6 +110,6 @@ tui = do
       case result of
         Left e -> putStrLn ("Failed to load syntax map: " ++ e) >> exitFailure
         Right syntaxMap -> do
-          let haskellSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Common Lisp"
+          let haskellSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Blub"
           initialState <- buildInitialState contents haskellSyntax
           void $ defaultMain tuiApp initialState

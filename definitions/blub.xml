@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language [
+        <!ENTITY identchar "[A-Za-z0-9-+&lt;&gt;/*]">
+        ]>
+<language version="1.0" name="Blub" extensions="*.blub" mimetype="" author="Konstantin Palikarsky" license="MIT">
+    <highlighting>
+        <list name="symbols">
+            <item>,</item>
+            <item>:</item>
+            <item>;</item>
+            <item>=</item>
+            <item>(</item>
+            <item>)</item>
+            <item>[</item>
+            <item>]</item>
+            <item>#</item>
+            <item>λ</item>
+        </list>
+
+        <list name="keywords">
+            <item>cond</item>
+            <item>add</item>
+            <item>div</item>
+            <item>mult</item>
+            <item>minus</item>
+        </list>
+
+        <contexts>
+            <context name="Normal" attribute="Normal" lineEndContext="#stay">
+                <DetectSpaces/>
+                <DetectChar attribute="Symbol" context="#stay" char=","/>
+                <DetectChar attribute="Symbol" context="#stay" char=":"/>
+                <DetectChar attribute="Symbol" context="#stay" char=";"/>
+                <DetectChar attribute="Symbol" context="#stay" char="="/>
+                <DetectChar attribute="Brackets" context="#stay" String="()[]"/>
+                <keyword attribute="Keyword" context="#stay" String="keywords"/>
+                <Float attribute="Float" context="#stay"/>
+                <Int attribute="Decimal" context="#stay"/>
+            </context>
+
+            <context name="String" attribute="String" lineEndContext="#pop">
+                <DetectChar attribute="String" context="#pop" char="&quot;"/>
+            </context>
+
+            <context name="Comment" attribute="Comment" lineEndContext="#pop">
+                <DetectChar attribute="Comment" context="#stay" char=";"/>
+            </context>
+        </contexts>
+
+        <itemDatas>
+            <itemData name="Normal" defStyleNum="dsNormal" spellChecking="false"/>
+            <itemData name="Keyword" defStyleNum="dsKeyword" spellChecking="false"/>
+            <itemData name="Symbol" defStyleNum="dsOperator" spellChecking="false"/>
+            <itemData name="Brackets" defStyleNum="dsNormal" color="#0000ff" selColor="#00ff00" bold="1"/>
+            <itemData name="String" defStyleNum="dsString" spellChecking="false"/>
+            <itemData name="Comment" defStyleNum="dsComment"/>
+        </itemDatas>
+    </highlighting>
+
+    <general>
+        <keywords casesensitive="1"/>
+        <comments>
+            <comment name="singleLine" start=";" />
+        </comments>
+    </general>
+</language>
