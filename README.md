@@ -1,8 +1,31 @@
-# Writing a text editor in Haskell with Brick
+Startup
+======
+To build run `stack build --allow-newer` in the project root, then start
+the binary text-editor in the folder indicated by the stack output
+
+Usage as `text-editor /path/to/file` to edit file
 
 
-For F(by) 2020 https://fby.dev
-2020-01-24: 18:00 - 21:00
+Operation
+========
+**A cursor for an X is a data structure that represents both the entire X and also where you are looking with in X.**
 
+``` haskell
+data ListCursor a = ListCursor [a] [a] -- Look between two elements
+```
 
-See workshop.md for the [PATAT](https://github.com/jaspervdj/patat) presentation.
+``` haskell
+data NonEmptyListCursor a = NonEmptyListCursor [a] a [a] -- Look at an element
+```
+
+# Brick architecture
+
+```
+         Start
+           |
+           v
+Event -> State -> Draw
+  ^                |
+  |                |
+   \-    Brick  <-/
+```
