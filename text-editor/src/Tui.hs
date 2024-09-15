@@ -30,15 +30,23 @@ data TuiState = TuiState { stateCursor :: TextFieldCursor, syntax :: Syntax } de
 
 data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
-buildInitialState :: Text -> Syntax -> IO TuiState
-buildInitialState contents blubSyntax = do
-  let tfc = makeTextFieldCursor contents
-  pure TuiState {stateCursor = tfc, syntax = blubSyntax}
+tuiApp :: App TuiState e ResourceName
+tuiApp =
+  App
+    { appDraw = drawTui,
+      appChooseCursor = showFirstCursor,
+      appHandleEvent = handleTuiEvent,
+      appStartEvent = pure,
+      appAttrMap = \_ -> attrMap V.defAttr $ attrMappingsForStyle S.pygments
+    }
+
 
 drawTui :: TuiState -> [Widget ResourceName]
-drawTui ts =
-  let codeText = rebuildTextFieldCursor (stateCursor ts)
-  in [highlight (syntax ts) codeText, selectedTextFieldCursorWidget ResourceName (stateCursor ts)]
+drawTui ts = [
+  highlight (syntax ts) (rebuildTextFieldCursor (stateCursor ts)),
+  selectedTextFieldCursorWidget ResourceName (stateCursor ts)
+  ]
+
 
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
 handleTuiEvent s e =
@@ -66,21 +74,11 @@ handleTuiEvent s e =
     _ -> continue s
 
 
-tuiApp :: App TuiState e ResourceName
-tuiApp =
-  App
-    { appDraw = drawTui,
-      appChooseCursor = showFirstCursor,
-      appHandleEvent = handleTuiEvent,
-      appStartEvent = pure,
-      appAttrMap = \_ -> attrMap V.defAttr $ attrMappingsForStyle S.pygments
-    }
-
 tui :: IO ()
 tui = do
   args <- getArgs
   case args of
-    [] -> die "No argument to choose file to edit."
+    [] -> die "Please specify the path of the file you wish to edit."
     (fp : _) -> do
       path <- resolveFile' fp
       maybeContents <- forgivingAbsence $ T.readFile (fromAbsFile path)
@@ -93,3 +91,8 @@ tui = do
           let blubSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Blub"
           initialState <- buildInitialState contents blubSyntax
           void $ defaultMain tuiApp initialState
+
+
+buildInitialState :: Text -> Syntax -> IO TuiState
+buildInitialState contents blubSyntax =
+  return TuiState {stateCursor = makeTextFieldCursor contents, syntax = blubSyntax}
