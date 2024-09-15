@@ -55,6 +55,8 @@ handleTuiEvent s e =
             let textFieldCursor' = fromMaybe textFieldCursor $ func textFieldCursor
             let s' = s {stateCursor = textFieldCursor'}
             continue s'
+          wrapToMaybe :: (a -> a) -> (a -> Maybe a)
+          wrapToMaybe f x = Just (f x)
        in case vtye of
             EvKey (KChar c) [] -> actionToState $ textFieldCursorInsertChar c . Just
             EvKey KUp [] -> actionToState textFieldCursorSelectPrevLine
@@ -69,9 +71,6 @@ handleTuiEvent s e =
             EvKey KEsc [] -> halt s
             _ -> continue s
     _ -> continue s
-
-wrapToMaybe :: (a -> a) -> (a -> Maybe a)
-wrapToMaybe f x = Just (f x)
 
 tui :: IO ()
 tui = do
