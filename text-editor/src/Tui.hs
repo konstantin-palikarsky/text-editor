@@ -61,22 +61,17 @@ handleTuiEvent s e =
             EvKey KDown [] -> actionToState textFieldCursorSelectNextLine
             EvKey KRight [] -> actionToState textFieldCursorSelectNextChar
             EvKey KLeft [] -> actionToState textFieldCursorSelectPrevChar
-            EvKey KRight [MCtrl] -> do
-                                    let tfc = stateCursor s
-                                    let tfc' = textFieldCursorSelectNextWord  tfc
-                                    let ns' = s {stateCursor = tfc'}
-                                    continue ns'
-            EvKey KLeft [MCtrl] -> do
-                                   let tfc = stateCursor s
-                                   let tfc' = textFieldCursorSelectPrevWord  tfc
-                                   let ns' = s {stateCursor = tfc'}
-                                   continue ns'
+            EvKey KRight [MCtrl] -> actionToState (wrapToMaybe textFieldCursorSelectNextWord)
+            EvKey KLeft [MCtrl] -> actionToState (wrapToMaybe textFieldCursorSelectPrevWord)
             EvKey KBS [] -> actionToState $ dullMDelete . textFieldCursorRemove
             EvKey KDel [] -> actionToState $ dullMDelete . textFieldCursorDelete
             EvKey KEnter [] -> actionToState $ Just . textFieldCursorInsertNewline . Just
             EvKey KEsc [] -> halt s
             _ -> continue s
     _ -> continue s
+
+wrapToMaybe :: (a -> a) -> (a -> Maybe a)
+wrapToMaybe f x = Just (f x)
 
 tui :: IO ()
 tui = do
