@@ -26,36 +26,22 @@ import System.Directory
 import System.Environment (getArgs)
 import System.Exit (die, exitFailure)
 
-data TuiState = TuiState
-  { stateCursor :: TextFieldCursor,
-    syntax :: Syntax,
-    styleIndex :: Int
-  }
-  deriving (Show, Eq)
+data TuiState = TuiState { stateCursor :: TextFieldCursor, syntax :: Syntax } deriving (Show, Eq)
 
 data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
 styles :: [(Text, Skylighting.Types.Style)]
-styles =
-  [
-    ("pygments", S.pygments),
-    ("espresso", S.espresso),
-    ("kate", S.kate),
-    ("breezeDark", S.breezeDark),
-    ("tango", S.tango),
-    ("haddock", S.monochrome),
-    ("zenburn", S.zenburn)
-  ]
+styles = [ ("pygments", S.pygments) ]
 
 buildInitialState :: Text -> Syntax -> IO TuiState
-buildInitialState contents haskellSyntax = do
+buildInitialState contents blubSyntax = do
   let tfc = makeTextFieldCursor contents
-  pure TuiState {stateCursor = tfc, syntax = haskellSyntax, styleIndex = 0}
+  pure TuiState {stateCursor = tfc, syntax = blubSyntax}
 
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts =
   let codeText = rebuildTextFieldCursor (stateCursor ts)
-      currentStyle = snd (styles !! styleIndex ts)
+      currentStyle = snd (head styles)
    in [highlight (syntax ts) codeText]
 
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
@@ -76,7 +62,6 @@ handleTuiEvent s e =
             EvKey KDown [] -> mDo textFieldCursorSelectNextLine
             EvKey KRight [] -> mDo textFieldCursorSelectNextChar
             EvKey KLeft [] -> mDo textFieldCursorSelectPrevChar
-            -- import Cursor.Types
             EvKey KBS [] -> mDo $ dullMDelete . textFieldCursorRemove
             EvKey KDel [] -> mDo $ dullMDelete . textFieldCursorDelete
             EvKey KEnter [] -> mDo $ Just . textFieldCursorInsertNewline . Just
@@ -92,7 +77,7 @@ tuiApp =
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent,
       appStartEvent = pure,
-      appAttrMap = \s -> attrMap V.defAttr $ attrMappingsForStyle (snd (styles !! styleIndex s))
+      appAttrMap = \s -> attrMap V.defAttr $ attrMappingsForStyle (snd (head styles))
     }
 
 tui :: IO ()
@@ -104,12 +89,11 @@ tui = do
       path <- resolveFile' fp
       maybeContents <- forgivingAbsence $ T.readFile (fromAbsFile path)
       let contents = fromMaybe "" maybeContents
-
-      let syntaxDir = "/d/Uni/Masters/10_Semester/PLs/text-editor/definitions"
+      let syntaxDir = "/d/Uni/Masters/10_Semester/PLs/text-editor/definitions" -- Absolute path due to stack behaving weirdly with WSL
       result <- S.loadSyntaxesFromDir syntaxDir
       case result of
         Left e -> putStrLn ("Failed to load syntax map: " ++ e) >> exitFailure
         Right syntaxMap -> do
-          let haskellSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Blub"
-          initialState <- buildInitialState contents haskellSyntax
+          let blubSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Blub"
+          initialState <- buildInitialState contents blubSyntax
           void $ defaultMain tuiApp initialState
