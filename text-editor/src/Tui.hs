@@ -88,7 +88,9 @@ tui = do
         Right syntaxMap -> do
           let blubSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Blub"
           initialState <- buildInitialState contents blubSyntax
-          void $ defaultMain tuiApp initialState
+          endState <- defaultMain tuiApp initialState
+          let contents' = rebuildTextFieldCursor (stateCursor endState)
+          unless (contents == contents') $ T.writeFile (fromAbsFile path) contents'
 
 buildInitialState :: Text -> Syntax -> IO TuiState
 buildInitialState contents languageSyntax =
