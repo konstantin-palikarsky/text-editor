@@ -49,12 +49,25 @@
         </contexts>
 
         <itemDatas>
-            <itemData name="Normal" defStyleNum="dsNormal" spellChecking="false"/>
-            <itemData name="Keyword" defStyleNum="dsKeyword" spellChecking="false"/>
-            <itemData name="Symbol" defStyleNum="dsOperator" spellChecking="false"/>
-            <itemData name="Brackets" defStyleNum="dsNormal" color="#0000ff" selColor="#00ff00" bold="1"/>
-            <itemData name="String" defStyleNum="dsString" spellChecking="false"/>
-            <itemData name="Comment" defStyleNum="dsComment"/>
+            <itemData name="Normal"      defStyleNum="dsNormal" spellChecking="false"/>
+            <itemData name="Keyword"     defStyleNum="dsKeyword" spellChecking="false"/>
+            <itemData name="Operator"    defStyleNum="dsOperator" spellChecking="false"/>
+            <itemData name="Modifier"    defStyleNum="dsBuiltIn" spellChecking="false"/>
+            <itemData name="Variable"    defStyleNum="dsVariable" spellChecking="false"/>
+            <itemData name="Definition"  defStyleNum="dsKeyword" spellChecking="false"/>
+            <itemData name="Decimal"     defStyleNum="dsDecVal" spellChecking="false"/>
+            <itemData name="BaseN"       defStyleNum="dsBaseN" spellChecking="false"/>
+            <itemData name="Float"       defStyleNum="dsFloat" spellChecking="false"/>
+            <itemData name="Function"    defStyleNum="dsFunction" spellChecking="false"/>
+            <itemData name="Function Operator" defStyleNum="dsOperator" spellChecking="false"/>
+            <itemData name="Function By Name"  defStyleNum="dsNormal" spellChecking="false"/>
+            <itemData name="Type"        defStyleNum="dsDataType" spellChecking="false"/>
+            <itemData name="Char"        defStyleNum="dsChar" spellChecking="false"/>
+            <itemData name="String"      defStyleNum="dsString" spellChecking="false"/>
+            <itemData name="String Char" defStyleNum="dsSpecialChar" spellChecking="false"/>
+            <itemData name="Comment"     defStyleNum="dsComment"/>
+            <itemData name="Region Marker" defStyleNum="dsRegionMarker"/>
+            <itemData name="Brackets"    defStyleNum="dsNormal" color="#0000ff" selColor="#00ff00" bold="1" italic="0"/>
         </itemDatas>
     </highlighting>
 
