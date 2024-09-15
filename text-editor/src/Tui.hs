@@ -30,9 +30,6 @@ data TuiState = TuiState { stateCursor :: TextFieldCursor, syntax :: Syntax } de
 
 data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
-styles :: [(Text, Skylighting.Types.Style)]
-styles = [ ("pygments", S.pygments) ]
-
 buildInitialState :: Text -> Syntax -> IO TuiState
 buildInitialState contents blubSyntax = do
   let tfc = makeTextFieldCursor contents
@@ -76,7 +73,7 @@ tuiApp =
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent,
       appStartEvent = pure,
-      appAttrMap = \s -> attrMap V.defAttr $ attrMappingsForStyle (snd (head styles))
+      appAttrMap = \_ -> attrMap V.defAttr $ attrMappingsForStyle S.pygments
     }
 
 tui :: IO ()
