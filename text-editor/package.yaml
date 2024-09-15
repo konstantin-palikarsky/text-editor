@@ -1,6 +1,5 @@
 name:                text-editor
 version:             0.0.0.0
-github:              "NorfairKing/writing-a-text-editor-in-haskell-with-brick"
 license:             MIT
 
 dependencies:
