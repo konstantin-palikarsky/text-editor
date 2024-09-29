@@ -8,6 +8,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - parsec
   - brick
   - brick-skylighting
   - skylighting-core
