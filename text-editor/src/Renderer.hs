@@ -27,39 +27,34 @@ markupMap = attrMap V.defAttr
 
 render :: String -> T.Widget n
 render txt =
-    let toks = tokenize txt
-        tree' = parseLang toks
+    let tokens = tokenize txt
+        tree' = parseLang tokens
 
         highlights = case tree' of
-            Right _ -> ([], [])  -- No warnings or errors from the parser itself
-            Left err -> ([], filter (\t -> errorPos err == pos t) toks)
+            Right _ -> ([], [])
+            Left err -> ([], filter (\t -> errorPos err == pos t) tokens)
 
-        tokLines = splitWhen (\t -> tokType t == NL) toks
+        tokLines = splitWhen (\t -> tokType t == NL) tokens
         widgetLines = (map . map) (\t -> renderToken t highlights) tokLines
         finalLines = map mergeHoriz widgetLines
     in
         mergeVert finalLines
     where
-        renderToken tok (_, errs) =
-            if isErr tok errs then
-                markup $ (pack $ text tok) @? "error"
-            else if tokType tok == COMMENT then
-                markup $ (pack $ text tok) @? "comment"
-            else if tokType tok == INT then
-                markup $ (pack $ text tok) @? "int"
-            else if tokType tok == LAMBDA then
-                markup $ (pack $ text tok) @? "func"
-            else if elem (tokType tok) [RBRACK, LBRACK] then
-                markup $ (pack $ text tok) @? "guard"
-            else
-                markup $ (pack $ text tok) @? "normal"
+        renderToken tok (_, errs)
+            | isErr tok errs              = markup $ (pack $ text tok) @? "error"
+            | tokType tok == COMMENT      = markup $ (pack $ text tok) @? "comment"
+            | tokType tok == INT          = markup $ (pack $ text tok) @? "int"
+            | tokType tok == LAMBDA       = markup $ (pack $ text tok) @? "func"
+            | tokType tok `elem` [RBRACK, LBRACK] = markup $ (pack $ text tok) @? "guard"
+            | otherwise                   = markup $ (pack $ text tok) @? "normal"
 
-        isErr tok errToks = elem tok errToks
+        isErr tok errtokens = elem tok errtokens
 
         mergeHoriz [] = str "\n"
         mergeHoriz ws = foldl (<+>) emptyWidget ws
 
         mergeVert ws = foldl (<=>) emptyWidget ws
+
 
 splitWhen :: (a -> Bool) -> [a] -> [[a]]
 splitWhen _ [] = []
