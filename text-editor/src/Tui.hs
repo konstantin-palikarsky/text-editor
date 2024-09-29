@@ -8,17 +8,14 @@ import Brick.Types
 import Brick.Util
 import Brick.Widgets.Border
 import Brick.Widgets.Core
-import Brick.Widgets.Skylighting (highlight, attrMappingsForStyle)
 import Graphics.Vty.Input.Events
 import qualified Graphics.Vty as V
-import Skylighting.Types (Syntax, Style)
-import qualified Skylighting.Core as S
 import Cursor.Brick.TextField
 import Cursor.TextField
 import Cursor.Types
 import Control.Monad (unless, void)
 import Data.Maybe (fromMaybe)
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 import qualified Data.Text.IO as T
 import Path
 import Path.IO
@@ -26,7 +23,9 @@ import System.Directory
 import System.Environment (getArgs)
 import System.Exit (die, exitFailure)
 
-data TuiState = TuiState { stateCursor :: TextFieldCursor, syntax :: Syntax, forceQuit :: Bool } deriving (Show, Eq)
+import Renderer as R
+
+data TuiState = TuiState { stateCursor :: TextFieldCursor,  forceQuit :: Bool } deriving (Show, Eq)
 
 data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
@@ -36,12 +35,12 @@ tuiApp = App
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent,
       appStartEvent = pure,
-      appAttrMap = \_ -> attrMap V.defAttr $ attrMappingsForStyle S.pygments
+      appAttrMap = const R.markupMap
     }
 
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts = [
-  highlight (syntax ts) (rebuildTextFieldCursor (stateCursor ts)),
+  (R.render (unpack (rebuildTextFieldCursor (stateCursor ts)))),
   selectedTextFieldCursorWidget ResourceName (stateCursor ts)
   ]
 
@@ -82,17 +81,11 @@ tui = do
       path <- resolveFile' fp
       maybeContents <- forgivingAbsence $ T.readFile (fromAbsFile path)
       let contents = fromMaybe "" maybeContents
-      let syntaxDir = "definitions"
-      result <- S.loadSyntaxesFromDir syntaxDir
-      case result of
-        Left e -> putStrLn ("Failed to load syntax map: " ++ e) >> exitFailure
-        Right syntaxMap -> do
-          let blubSyntax = fromMaybe (error "Syntax not found") $ S.syntaxByName syntaxMap "Blub"
-          initialState <- buildInitialState contents blubSyntax
-          endState <- defaultMain tuiApp initialState
-          let contents' = rebuildTextFieldCursor (stateCursor endState)
-          unless (contents == contents' || (forceQuit endState)) $ T.writeFile (fromAbsFile path) contents'
+      initialState <- buildInitialState contents
+      endState <- defaultMain tuiApp initialState
+      let contents' = rebuildTextFieldCursor (stateCursor endState)
+      unless (contents == contents' || (forceQuit endState)) $ T.writeFile (fromAbsFile path) contents'
 
-buildInitialState :: Text -> Syntax -> IO TuiState
-buildInitialState contents languageSyntax =
-  return TuiState {stateCursor = makeTextFieldCursor contents, syntax = languageSyntax, forceQuit = False}
+buildInitialState :: Text -> IO TuiState
+buildInitialState contents =
+  return TuiState {stateCursor = makeTextFieldCursor contents, forceQuit = False}

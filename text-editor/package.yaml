@@ -10,14 +10,11 @@ library:
   dependencies:
   - parsec
   - brick
-  - brick-skylighting
-  - skylighting-core
   - cursor
   - cursor-brick
   - directory
   - path
   - path-io
-  - pretty-show
   - text
   - vty
 
