@@ -3,8 +3,6 @@ module Parser
     ( Block(..)
     , Commands(..)
     , Command(..)
-    , Guard(..)
-    , BoolExpr(..)
     , Expression(..)
     , Primary(..)
     , Reference(..)
@@ -14,124 +12,78 @@ module Parser
 import Text.Parsec hiding (token, anyToken, satisfy, noneOf, oneOf)
 import Lexer
 
+-- AST Definitions
 data Block = Block Commands
     deriving (Show, Eq)
 
 data Commands = Cmds [Command]
     deriving (Show, Eq)
 
-data Command = GuardCmd Guard Commands
-             | AssgCmd Reference Expression
+data Command = AssgCmd Reference Expression
              | ExprCmd Expression
-             | ReturnCmd Expression
     deriving (Show, Eq)
 
-data Guard = Guard [BoolExpr]
+data Expression = PrimExpr Primary
     deriving (Show, Eq)
 
-data BoolExpr = BoolEq Expression Expression
-    deriving (Show, Eq)
-
-data Expression = AddExpr Primary [Token] [Expression]
-    deriving (Show, Eq)
-
-data Primary = StrPrim Token
-             | BlockPrim Block
+data Primary = IntPrim Token
              | RefPrim Reference
              | ParensPrim Expression
     deriving (Show, Eq)
 
-data Reference = Ref [Token] Token
+data Reference = Ref Token
     deriving (Show, Eq)
 
+-- Parser Type
 type Parser a = Parsec [Token] () a
 
+-- Main parser function
 parseLang :: [Token] -> Either ParseError Block
-parseLang toks = parse block "" $ filter (not.ignored) toks
+parseLang toks = parse commands "" $ filter (not . ignored) toks
     where
         ignored t = elem (tokType t) [WS, NL, COMMENT]
 
-block :: Parser Block
-block = between (token LCURLY) (token RCURLY) commands >>= \cmds -> return $ Block cmds
+-- Commands parser
+commands :: Parser Block
+commands = many command >>= \cmds -> return $ Block (Cmds cmds)
 
-commands :: Parser Commands
-commands = many command >>= \cmds -> return $ Cmds cmds
-
+-- Command parser, only assignment and expression commands
 command :: Parser Command
-command = guardCmd <|> assgCmd <|> exprCmd <|> retCmd
+command = assgCmd <|> exprCmd
 
-guardCmd :: Parser Command
-guardCmd = between (token LBRACK) (token RBRACK) guardCmd'
-    where
-        guardCmd' = do
-            grd <- guard <* (token COLON)
-            cmds <- commands
-            return $ GuardCmd grd cmds
-
-guard :: Parser Guard
-guard = do
-    grd <- boolExpr
-    grds <- many (token COMMA *> boolExpr)
-    return $ Guard $ grd:grds
-
-boolExpr :: Parser BoolExpr
-boolExpr = do
-    left <- expr <* (oneOf [EQUAL, HASH])
-    right <- expr
-    return $ BoolEq left right
-
+-- Assignment command parser
 assgCmd :: Parser Command
 assgCmd = do
     ref <- try (reference <* token EQUAL)
     val <- expr <* token SEMICOL
     return $ AssgCmd ref val
 
+-- Expression command parser
 exprCmd :: Parser Command
 exprCmd = expr <* token SEMICOL >>= \e -> return $ ExprCmd e
 
-retCmd :: Parser Command
-retCmd = token CARET *> expr <* token SEMICOL >>= \e -> return $ ReturnCmd e
-
+-- Expression parser
 expr :: Parser Expression
-expr = do
-    prim <- primary
-    primSuff <- many (token DOT *> token ID)
-    exprs <- many (token PLUS *> expr)
-    return $ AddExpr prim primSuff exprs
+expr = PrimExpr <$> primary
 
+-- Primary parser (Integers, References, or Parenthesized Expressions)
 primary :: Parser Primary
-primary = (token STRING >>= \t -> return $ StrPrim t)
-    <|> (token ERR_STRING >>= \t -> return $ StrPrim t)
-    <|> (block >>= \b -> return $ BlockPrim b)
-    <|> (reference >>= \r -> return $ RefPrim r)
-    <|> (parensExpr >>= \e -> return $ ParensPrim e)
+primary = (token INT >>= return . IntPrim)
+      <|> (reference >>= return . RefPrim)
+      <|> (parensExpr >>= return . ParensPrim)
     where
         parensExpr = between (token LPARENS) (token RPARENS) expr
 
+-- Reference parser (e.g., names, variables)
 reference :: Parser Reference
-reference = do
-    stars <- many $ token STAR
-    name <- token ID
-    return $ Ref stars name
+reference = token ID >>= return . Ref
 
-
+-- Token parsers
 token :: TokenType -> Parser Token
 token tt = satisfy (\t -> tokType t == tt)
 
---notToken :: TokenType -> Parser Token
---notToken tt = satisfy (\t -> tokType t /= tt)
-
---noneOf :: [TokenType] -> Parser Token
---noneOf tts = satisfy (\t -> not $ elem (tokType t) tts)
-
-oneOf :: [TokenType] -> Parser Token
-oneOf tts = satisfy (\t -> elem (tokType t) tts)
-
---anyToken :: Parser Token
---anyToken = satisfy (\_ -> True)
-
 satisfy :: (Token -> Bool) -> Parser Token
-satisfy f = tokenPrim (\t -> text t) 
+satisfy f = tokenPrim (\t -> text t)
                       advance
                       (\t -> if f t then Just t else Nothing)
     where
