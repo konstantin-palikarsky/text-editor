@@ -32,7 +32,7 @@ data Token = Token { tokType :: TokenType
 
 
 tokenize :: String -> [Token]
-tokenize txt = let Right res = parse tokens "" txt in res
+tokenize inputText = let Right res = parse tokens "" inputText in res
 
 tokens :: Parser [Token]
 tokens = do

@@ -26,15 +26,15 @@ markupMap = attrMap V.defAttr
   ]
 
 render :: String -> T.Widget n
-render txt =
-    let tokens = tokenize txt
+render inputText =
+    let tokens = tokenize inputText
         tree = parseLang tokens
-        highlights = case tree of
+        errors = case tree of
             Right _ -> ([], [])
             Left err -> ([], filter (\t -> errorPos err == pos t) tokens)
 
         tokLines = splitWhen (\t -> tokType t == NL) tokens
-        widgetLines = (map . map) (\t -> highlightTokenByGrammar t highlights) tokLines
+        widgetLines = (map . map) (\t -> highlightTokenByGrammar t errors) tokLines
         finalLines = map mergeHoriz widgetLines
     in
         mergeVert finalLines
