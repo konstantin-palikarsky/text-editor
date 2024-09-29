@@ -23,7 +23,7 @@ import System.Directory
 import System.Environment (getArgs)
 import System.Exit (die, exitFailure)
 
-import Renderer as R
+import Render as R
 
 data TuiState = TuiState { stateCursor :: TextFieldCursor,  forceQuit :: Bool } deriving (Show, Eq)
 
@@ -40,7 +40,7 @@ tuiApp = App
 
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts = [
-  (R.render (unpack (rebuildTextFieldCursor (stateCursor ts)))),
+  R.render $ unpack $ rebuildTextFieldCursor $ (stateCursor ts),
   selectedTextFieldCursorWidget ResourceName (stateCursor ts)
   ]
 

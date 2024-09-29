@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Lexer
+module Lex
   ( TokenType(..)
   , Token(..)
   , tokenize
