@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 module Lex ( TokenType(..), Token(..), tokenize ) where
 
 import Text.ParserCombinators.Parsec hiding (token, tokens)

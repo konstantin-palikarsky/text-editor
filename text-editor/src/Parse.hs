@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 module Parse ( parseLang ) where
 
 import Text.Parsec hiding (token, anyToken, satisfy, noneOf, oneOf)
