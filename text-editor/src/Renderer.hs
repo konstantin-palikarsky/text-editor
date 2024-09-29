@@ -19,7 +19,7 @@ markupMap :: AttrMap
 markupMap = attrMap V.defAttr
   [ ("error", bg V.red)
   , ("comment", fg $ V.rgbColor 80 80 80)
-  , ("ret", fg V.brightMagenta)
+  , ("func", fg V.brightMagenta)
   , ("guard", fg V.blue)
   , ("int", fg V.green)
   , ("normal", fg V.brightWhite)
@@ -48,7 +48,7 @@ render txt =
             else if tokType tok == INT then
                 markup $ (pack $ text tok) @? "int"
             else if tokType tok == LAMBDA then
-                markup $ (pack $ text tok) @? "ret"
+                markup $ (pack $ text tok) @? "func"
             else if elem (tokType tok) [RBRACK, LBRACK] then
                 markup $ (pack $ text tok) @? "guard"
             else
