@@ -15,7 +15,7 @@ import Cursor.TextField
 import Cursor.Types
 import Control.Monad (unless, void)
 import Data.Maybe (fromMaybe)
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import qualified Data.Text.IO as T
 import Path
 import Path.IO
@@ -35,12 +35,12 @@ tuiApp = App
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent,
       appStartEvent = pure,
-      appAttrMap = const R.markupMap
+      appAttrMap = const R.highlightColors
     }
 
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts = [
-  R.render $ unpack $ rebuildTextFieldCursor $ (stateCursor ts),
+  R.highlightText $ rebuildTextFieldCursor $ (stateCursor ts),
   selectedTextFieldCursorWidget ResourceName (stateCursor ts)
   ]
 

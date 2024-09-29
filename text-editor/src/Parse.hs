@@ -1,14 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Parse
-    ( Statement(..)
-    , Expression(..)
-    , Element(..)
-    , Parameter(..)
-    , Reference(..)
-    , Record(..)
-    , Function(..)
-    , parseLang
-    ) where
+module Parse ( parseLang ) where
 
 import Text.Parsec hiding (token, anyToken, satisfy, noneOf, oneOf)
 import Lex
@@ -51,7 +42,7 @@ type Parser a = Parsec [Token] () a
 parseLang :: [Token] -> Either ParseError Program
 parseLang toks = parse program "" $ filter (not . ignored) toks
     where
-        ignored t = elem (tokType t) [WS, NL, COMMENT]
+        ignored t = elem (tType t) [WS, NL, COMMENT]
 
 
 program :: Parser Program
@@ -115,7 +106,7 @@ reference = token ID >>= return . Ref
 
 
 token :: TokenType -> Parser Token
-token tt = satisfy (\t -> tokType t == tt)
+token tt = satisfy (\t -> tType t == tt)
 
 
 satisfy :: (Token -> Bool) -> Parser Token
