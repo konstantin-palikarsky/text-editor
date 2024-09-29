@@ -23,7 +23,7 @@ import System.Directory
 import System.Environment (getArgs)
 import System.Exit (die, exitFailure)
 
-import Render as R
+import Highlight
 
 data TuiState = TuiState { stateCursor :: TextFieldCursor,  forceQuit :: Bool } deriving (Show, Eq)
 
@@ -35,12 +35,12 @@ tuiApp = App
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent,
       appStartEvent = pure,
-      appAttrMap = const R.highlightColors
+      appAttrMap = const highlightColors
     }
 
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts = [
-  R.highlightText $ rebuildTextFieldCursor $ (stateCursor ts),
+  highlightText $ rebuildTextFieldCursor $ (stateCursor ts),
   selectedTextFieldCursorWidget ResourceName (stateCursor ts)
   ]
 

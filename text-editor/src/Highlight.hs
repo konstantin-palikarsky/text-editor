@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Render ( highlightColors, highlightText ) where
+module Highlight ( highlightColors, highlightText ) where
 
 import qualified Graphics.Vty as V
 import qualified Brick.Types as T
