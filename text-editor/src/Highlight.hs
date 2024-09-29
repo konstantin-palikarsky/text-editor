@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Highlight ( highlightColors, highlightText ) where
 
 import qualified Graphics.Vty as V
