@@ -58,7 +58,7 @@ token = choice
   , accept EQUAL    $ string "="
   , accept COMMA    $ string ","
   , accept LAMBDA   $ string "λ"
-  , accept COMMENT  $ char '#' *> (many $ noneOf "\n") >>= \comment -> return $ "%" ++ comment
+  , accept COMMENT  $ char '#' *> (many $ noneOf "\n") >>= \comment -> return $ "#" ++ comment
   , accept NL       $ string "\n"
   , accept WS       $ many1 $ oneOf " \t"
   , accept ERR      $ do t <- anyToken ; return [t]
