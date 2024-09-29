@@ -1,11 +1,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Parser
-    ( Block(..)
-    , Commands(..)
-    , Command(..)
+    ( Program(..)
+    , Statements(..)
+    , Statement(..)
     , Expression(..)
-    , Primary(..)
+    , Element(..)
+    , Parameter(..)
     , Reference(..)
+    , Record(..)
+    , Function(..)
     , parseLang
     ) where
 
@@ -13,22 +16,33 @@ import Text.Parsec hiding (token, anyToken, satisfy, noneOf, oneOf)
 import Lexer
 
 -- AST Definitions
-data Block = Block Commands
+data Program = Program Statements
     deriving (Show, Eq)
 
-data Commands = Cmds [Command]
+data Statements = Stmts [Statement]
     deriving (Show, Eq)
 
-data Command = AssgCmd Reference Expression
-             | ExprCmd Expression
+data Statement = AssgStmt Reference Expression
+               | ExprStmt Expression
     deriving (Show, Eq)
 
-data Expression = PrimExpr Primary
+data Expression = Expr [Element]
     deriving (Show, Eq)
 
-data Primary = IntPrim Token
-             | RefPrim Reference
-             | ParensPrim Expression
+data Element = IntElem Token
+             | RefElem Reference
+             | ParensElem Expression
+             | FuncElem Function
+             | RecElem Record
+    deriving (Show, Eq)
+
+data Record = Record [(Reference, Expression)]
+    deriving (Show, Eq)
+
+data Function = Lambda [Parameter] Expression
+    deriving (Show, Eq)
+
+data Parameter = Param Reference
     deriving (Show, Eq)
 
 data Reference = Ref Token
@@ -38,41 +52,66 @@ data Reference = Ref Token
 type Parser a = Parsec [Token] () a
 
 -- Main parser function
-parseLang :: [Token] -> Either ParseError Block
-parseLang toks = parse commands "" $ filter (not . ignored) toks
+parseLang :: [Token] -> Either ParseError Program
+parseLang toks = parse program "" $ filter (not . ignored) toks
     where
         ignored t = elem (tokType t) [WS, NL, COMMENT]
 
--- Commands parser
-commands :: Parser Block
-commands = many command >>= \cmds -> return $ Block (Cmds cmds)
+-- Program parser (list of statements)
+program :: Parser Program
+program = many statement >>= \stmts -> return $ Program (Stmts stmts)
 
--- Command parser, only assignment and expression commands
-command :: Parser Command
-command = assgCmd <|> exprCmd
+-- Statement parser (assignment or expression)
+statement :: Parser Statement
+statement = try assgStmt <|> exprStmt
 
--- Assignment command parser
-assgCmd :: Parser Command
-assgCmd = do
+-- Assignment statement parser
+assgStmt :: Parser Statement
+assgStmt = do
     ref <- try (reference <* token EQUAL)
-    val <- expr <* token SEMICOL
-    return $ AssgCmd ref val
+    val <- expression <* token SEMICOL
+    return $ AssgStmt ref val
 
--- Expression command parser
-exprCmd :: Parser Command
-exprCmd = expr <* token SEMICOL >>= \e -> return $ ExprCmd e
+-- Expression statement parser
+exprStmt :: Parser Statement
+exprStmt = expression <* token SEMICOL >>= \e -> return $ ExprStmt e
 
 -- Expression parser
-expr :: Parser Expression
-expr = PrimExpr <$> primary
+expression :: Parser Expression
+expression = many1 element >>= \elems -> return $ Expr elems
 
--- Primary parser (Integers, References, or Parenthesized Expressions)
-primary :: Parser Primary
-primary = (token INT >>= return . IntPrim)
-      <|> (reference >>= return . RefPrim)
-      <|> (parensExpr >>= return . ParensPrim)
+-- Element parser
+element :: Parser Element
+element = (token INT >>= return . IntElem)
+      <|> (reference >>= return . RefElem)
+      <|> (parensExpr >>= return . ParensElem)
+      <|> (function >>= return . FuncElem)
+      <|> (record >>= return . RecElem)
     where
-        parensExpr = between (token LPARENS) (token RPARENS) expr
+        parensExpr = between (token LPARENS) (token RPARENS) expression
+
+-- Record parser
+record :: Parser Record
+record = between (token LBRACK) (token RBRACK) (sepBy recordEntry (token COMMA)) >>= return . Record
+    where
+        recordEntry = do
+            ref <- reference
+            token EQUAL
+            expr <- expression
+            return (ref, expr)
+
+-- Function parser
+function :: Parser Function
+function = do
+    token LAMBDA
+    params <- between (token LPARENS) (token RPARENS) (sepBy parameter (token COMMA))
+    token COLON
+    body <- expression
+    return $ Lambda params body
+
+-- Parameter parser
+parameter :: Parser Parameter
+parameter = reference >>= return . Param
 
 -- Reference parser (e.g., names, variables)
 reference :: Parser Reference

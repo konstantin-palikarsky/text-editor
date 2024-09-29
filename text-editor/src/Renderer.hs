@@ -20,7 +20,7 @@ markupMap = attrMap V.defAttr
   [ ("error", bg V.red)
   , ("comment", fg $ V.rgbColor 80 80 80)
   , ("func", fg V.brightMagenta)
-  , ("guard", fg V.blue)
+  , ("sqbracket", fg V.blue)
   , ("int", fg V.green)
   , ("normal", fg V.brightWhite)
   ]
@@ -28,9 +28,8 @@ markupMap = attrMap V.defAttr
 render :: String -> T.Widget n
 render txt =
     let tokens = tokenize txt
-        tree' = parseLang tokens
-
-        highlights = case tree' of
+        tree = parseLang tokens
+        highlights = case tree of
             Right _ -> ([], [])
             Left err -> ([], filter (\t -> errorPos err == pos t) tokens)
 
@@ -45,7 +44,7 @@ render txt =
             | tokType tok == COMMENT      = markup $ (pack $ text tok) @? "comment"
             | tokType tok == INT          = markup $ (pack $ text tok) @? "int"
             | tokType tok == LAMBDA       = markup $ (pack $ text tok) @? "func"
-            | tokType tok `elem` [RBRACK, LBRACK] = markup $ (pack $ text tok) @? "guard"
+            | tokType tok `elem` [RBRACK, LBRACK] = markup $ (pack $ text tok) @? "sqbracket"
             | otherwise                   = markup $ (pack $ text tok) @? "normal"
 
         isErr tok errtokens = elem tok errtokens

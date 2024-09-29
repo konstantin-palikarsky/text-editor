@@ -3,7 +3,6 @@ module Lexer
   ( TokenType(..)
   , Token(..)
   , tokenize
-  , isAfter
   ) where
 
 import Text.ParserCombinators.Parsec hiding (token, tokens, alphaNum)
@@ -34,9 +33,6 @@ data Token = Token { tokType :: TokenType
 
 tokenize :: String -> [Token]
 tokenize txt = let Right res = parse tokens "" txt in res
-
-isAfter :: Token -> Token -> Bool
-isAfter t1 t2 = (pos t1) > (pos t2)
 
 tokens :: Parser [Token]
 tokens = do
