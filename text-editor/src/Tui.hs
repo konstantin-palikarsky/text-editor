@@ -29,6 +29,7 @@ data TuiState = TuiState { stateCursor :: TextFieldCursor,  forceQuit :: Bool } 
 
 data ResourceName = ResourceName deriving (Show, Eq, Ord)
 
+-- Hook for app startup, initializes the app with the initial state in main
 tuiApp :: App TuiState e ResourceName
 tuiApp = App
     { appDraw = drawTui,
@@ -38,12 +39,14 @@ tuiApp = App
       appAttrMap = const highlightColors
     }
 
+-- The function to be invoked after each state change caused by event handling, renders the text and the cursor
 drawTui :: TuiState -> [Widget ResourceName]
 drawTui ts = [
   highlightText $ rebuildTextFieldCursor $ (stateCursor ts),
   selectedTextFieldCursorWidget ResourceName (stateCursor ts)
   ]
 
+-- Handles each event based on the initial TUI State
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
 handleTuiEvent s e =
   case e of
@@ -72,6 +75,7 @@ handleTuiEvent s e =
             _ -> continue s
     _ -> continue s
 
+-- Main function, reads in the expected file, and either stores or clearly exits when done
 tui :: IO ()
 tui = do
   args <- getArgs
@@ -86,6 +90,7 @@ tui = do
       let contents' = rebuildTextFieldCursor (stateCursor endState)
       unless (contents == contents' || (forceQuit endState)) $ T.writeFile (fromAbsFile path) contents'
 
+-- Creates the initial state from default values, and a cursor created from the contents of the file
 buildInitialState :: Text -> IO TuiState
 buildInitialState contents =
   return TuiState {stateCursor = makeTextFieldCursor contents, forceQuit = False}

@@ -3,6 +3,10 @@ module Parse ( parseLang ) where
 import Text.Parsec hiding (token, anyToken, satisfy, noneOf, oneOf)
 import Lex
 
+{-
+   The grammar of the language, described as Haskell data classes and their constructors
+-}
+
 data Program = Program Statements
     deriving (Show, Eq)
 
@@ -37,12 +41,17 @@ data Reference = Ref Token
 
 type Parser a = Parsec [Token] () a
 
-
+-- Main parsing function, returns the full AST, or a specific error if the AST could not be reliably built
 parseLang :: [Token] -> Either ParseError Program
 parseLang toks = parse program "" $ filter (not . ignored) toks
     where
         ignored t = elem (tType t) [WS, NL, COMMENT]
 
+
+{-
+   Parsec boilerplate, which designates a combinator to use (many, try) and breaks the problem into smaller parsers,
+   to recursively descend to the appropriate primitive, while building the AST along the way
+-}
 
 program :: Parser Program
 program = many statement >>= \stmts -> return $ Program (Stmts stmts)
@@ -103,11 +112,11 @@ parameter = reference >>= return . Param
 reference :: Parser Reference
 reference = token ID >>= return . Ref
 
-
+-- A wrapper for satisfy, so that the token can be requested simply by type
 token :: TokenType -> Parser Token
 token tt = satisfy (\t -> tType t == tt)
 
-
+-- Attempts to read in a token that satisfies the expected type
 satisfy :: (Token -> Bool) -> Parser Token
 satisfy f = tokenPrim (\t -> text t)
                       advance
