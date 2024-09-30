@@ -33,7 +33,7 @@ highlightText inputText =
         tree = parseLang tokens
         errors = case tree of
             Right _ -> []
-            Left err -> filter (\t -> errorPos err == pos t) tokens -- Only error-highlight the first misplaced token
+            Left err -> filter (\t -> errorPos err == pos t) tokens -- Find a token at the position of the error
 
         tokLines = splitWhen (\t -> tType t == NL) tokens
         widgetLines = (map . map) (\t -> highlightTokenByGrammar t errors) tokLines
