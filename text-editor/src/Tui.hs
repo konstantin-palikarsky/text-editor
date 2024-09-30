@@ -41,10 +41,9 @@ tuiApp = App
 
 -- The function to be invoked after each state change caused by event handling, renders the text and the cursor
 drawTui :: TuiState -> [Widget ResourceName]
-drawTui ts = [
-  highlightText $ rebuildTextFieldCursor $ (stateCursor ts),
-  selectedTextFieldCursorWidget ResourceName (stateCursor ts)
-  ]
+drawTui ts =
+ let cursor = stateCursor ts
+ in [ highlightText $ rebuildTextFieldCursor $ cursor, selectedTextFieldCursorWidget ResourceName cursor ]
 
 -- Handles each event based on the initial TUI State
 handleTuiEvent :: TuiState -> BrickEvent n e -> EventM n (Next TuiState)
